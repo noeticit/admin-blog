@@ -2,6 +2,7 @@
 import { router, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import { Save, ArrowLeft, Trash2 } from 'lucide-vue-next';
+import AdminLayout from '@/layouts/AdminLayout.vue';
 
 interface Post {
     id: number;
@@ -69,7 +70,8 @@ const deletePost = () => {
 </script>
 
 <template>
-    <div class="space-y-6">
+    <AdminLayout>
+        <div class="space-y-6">
         <!-- Header -->
         <div class="flex items-center justify-between">
             <div class="flex items-center gap-4">
@@ -272,5 +274,6 @@ const deletePost = () => {
                 </div>
             </div>
         </form>
-    </div>
+        </div>
+    </AdminLayout>
 </template>

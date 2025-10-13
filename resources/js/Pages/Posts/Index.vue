@@ -2,6 +2,7 @@
 import { router } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
 import { Edit, Eye, Trash2, Plus, Search, Filter } from 'lucide-vue-next';
+import AdminLayout from '@/layouts/AdminLayout.vue';
 
 interface Post {
     id: number;
@@ -68,7 +69,8 @@ const getStatusColor = (status: string) => {
 </script>
 
 <template>
-    <div class="space-y-6">
+    <AdminLayout>
+        <div class="space-y-6">
         <!-- Header -->
         <div class="flex items-center justify-between">
             <div>
@@ -217,5 +219,6 @@ const getStatusColor = (status: string) => {
                 />
             </div>
         </div>
-    </div>
+        </div>
+    </AdminLayout>
 </template>

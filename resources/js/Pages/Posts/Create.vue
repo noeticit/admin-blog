@@ -2,6 +2,7 @@
 import { router, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import { Save, ArrowLeft } from 'lucide-vue-next';
+import AdminLayout from '@/layouts/AdminLayout.vue';
 
 interface Category {
     id: number;
@@ -47,7 +48,8 @@ const submit = () => {
 </script>
 
 <template>
-    <div class="space-y-6">
+    <AdminLayout>
+        <div class="space-y-6">
         <!-- Header -->
         <div class="flex items-center justify-between">
             <div class="flex items-center gap-4">
@@ -250,5 +252,6 @@ const submit = () => {
                 </div>
             </div>
         </form>
-    </div>
+        </div>
+    </AdminLayout>
 </template>
