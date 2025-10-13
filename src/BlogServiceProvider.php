@@ -94,16 +94,17 @@ class BlogServiceProvider extends ServiceProvider
                     'route' => 'admin.blog.posts.create',
                     'permission' => 'blog.create',
                 ],
-                [
-                    'label' => 'Categories',
-                    'route' => 'admin.blog.categories.index',
-                    'permission' => 'blog.manage_categories',
-                ],
-                [
-                    'label' => 'Tags',
-                    'route' => 'admin.blog.tags.index',
-                    'permission' => 'blog.manage_tags',
-                ],
+                // TODO: Add Categories and Tags pages
+                // [
+                //     'label' => 'Categories',
+                //     'route' => 'admin.blog.categories.index',
+                //     'permission' => 'blog.manage_categories',
+                // ],
+                // [
+                //     'label' => 'Tags',
+                //     'route' => 'admin.blog.tags.index',
+                //     'permission' => 'blog.manage_tags',
+                // ],
             ],
         ]);
     }
