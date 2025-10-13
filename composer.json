@@ -1,0 +1,38 @@
+{
+    "name": "noeticit/admin-blog",
+    "description": "Blog management module for Noetic Admin Core",
+    "type": "library",
+    "license": "proprietary",
+    "keywords": [
+        "laravel",
+        "admin",
+        "blog",
+        "cms",
+        "noetic"
+    ],
+    "authors": [
+        {
+            "name": "Noetic IT Services",
+            "email": "dev@noetic.com"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "noeticit/admin-core": "^1.0|@dev",
+        "laravel/framework": "^11.0|^12.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Noeticit\\AdminBlog\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Noeticit\\AdminBlog\\BlogServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
