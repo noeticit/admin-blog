@@ -57,7 +57,7 @@ class PostController
             'archived' => Post::where('status', 'archived')->count(),
         ];
 
-        return Inertia::render('Admin/Blog/Posts/Index', [
+        return Inertia::render('Admin/Blog/Index', [
             'posts' => $posts,
             'categories' => $categories,
             'tags' => $tags,
@@ -71,7 +71,7 @@ class PostController
         $categories = Category::all();
         $tags = Tag::all();
 
-        return Inertia::render('Admin/Blog/Posts/Create', [
+        return Inertia::render('Admin/Blog/Create', [
             'categories' => $categories,
             'tags' => $tags,
         ]);
@@ -131,7 +131,7 @@ class PostController
     {
         $post->load(['category', 'author', 'tags']);
 
-        return Inertia::render('Admin/Blog/Posts/Show', [
+        return Inertia::render('Admin/Blog/Show', [
             'post' => $post,
         ]);
     }
@@ -143,8 +143,12 @@ class PostController
         $categories = Category::all();
         $tags = Tag::all();
 
-        return Inertia::render('Admin/Blog/Posts/Edit', [
-            'post' => $post,
+        // Transform post tags to array of IDs for the form
+        $postData = $post->toArray();
+        $postData['tags'] = $post->tags->pluck('id')->toArray();
+
+        return Inertia::render('Admin/Blog/Edit', [
+            'post' => $postData,
             'categories' => $categories,
             'tags' => $tags,
         ]);
