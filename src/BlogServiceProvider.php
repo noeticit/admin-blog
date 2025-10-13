@@ -51,10 +51,23 @@ class BlogServiceProvider extends ServiceProvider
                 __DIR__.'/../config/blog.php' => config_path('blog.php'),
             ], 'blog-config');
 
-            // Publish Vue assets
+            // Publish Vue pages directly into pages directory
             $this->publishes([
-                __DIR__.'/../resources/js' => resource_path('js/vendor/admin-blog'),
+                __DIR__.'/../resources/js/Pages' => resource_path('js/pages/Admin/Blog'),
+                __DIR__.'/../resources/js/Components' => resource_path('js/components/admin-blog'),
             ], 'blog-assets');
+
+            // Publish pages only (for selective publishing)
+            $this->publishes([
+                __DIR__.'/../resources/js/Pages' => resource_path('js/pages/Admin/Blog'),
+            ], 'blog-pages');
+
+            // Publish all
+            $this->publishes([
+                __DIR__.'/../config/blog.php' => config_path('blog.php'),
+                __DIR__.'/../resources/js/Pages' => resource_path('js/pages/Admin/Blog'),
+                __DIR__.'/../resources/js/Components' => resource_path('js/components/admin-blog'),
+            ], 'blog-all');
         }
     }
 
