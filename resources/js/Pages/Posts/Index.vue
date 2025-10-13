@@ -198,9 +198,9 @@ const getStatusColor = (status: string) => {
         </div>
 
         <!-- Pagination -->
-        <div v-if="posts.links" class="flex items-center justify-between">
+        <div v-if="posts.links && posts.meta" class="flex items-center justify-between">
             <div class="text-sm text-slate-600 dark:text-slate-400">
-                Showing {{ posts.meta.from }} to {{ posts.meta.to }} of {{ posts.meta.total }} posts
+                Showing {{ posts.meta.from || 0 }} to {{ posts.meta.to || 0 }} of {{ posts.meta.total || 0 }} posts
             </div>
             <div class="flex gap-2">
                 <a
