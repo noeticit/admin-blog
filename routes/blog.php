@@ -22,6 +22,8 @@ Route::middleware(['web', 'admin.auth'])
         Route::resource('posts', PostController::class);
         Route::post('posts/bulk-action', [PostController::class, 'bulkAction'])->name('posts.bulk-action');
         Route::post('posts/{post}/generate-meta', [PostController::class, 'generateMeta'])->name('posts.generate-meta');
+        Route::post('posts/generate-meta', [PostController::class, 'generateMetaFromContent'])->name('posts.generate-meta-content');
+        Route::post('upload-image', [PostController::class, 'uploadImage'])->name('upload-image');
 
         // Categories
         Route::resource('categories', CategoryController::class)->except(['show']);

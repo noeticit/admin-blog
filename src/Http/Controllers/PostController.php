@@ -2,9 +2,11 @@
 
 namespace Noeticit\AdminBlog\Http\Controllers;
 
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
@@ -216,7 +218,7 @@ class PostController
     /**
      * Generate SEO meta tags using AI.
      */
-    public function generateMeta(Request $request, Post $post)
+    public function generateMeta(Request $request, Post $post): JsonResponse
     {
         if (!config('admin.ai.enabled')) {
             return response()->json(['error' => 'AI service is disabled'], 400);
@@ -227,6 +229,66 @@ class PostController
             $meta = $ai->generateSEOMeta($post->content);
 
             return response()->json($meta);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Generate SEO meta tags using AI (standalone - no post required).
+     */
+    public function generateMetaFromContent(Request $request): JsonResponse
+    {
+        $request->validate([
+            'title' => 'nullable|string|max:255',
+            'content' => 'nullable|string',
+        ]);
+
+        if (!config('admin.ai.enabled', false)) {
+            return response()->json(['error' => 'AI service is disabled'], 400);
+        }
+
+        $title = $request->input('title', '');
+        $content = $request->input('content', '');
+
+        if (empty($title) && empty($content)) {
+            return response()->json(['error' => 'Please provide title or content'], 400);
+        }
+
+        try {
+            $ai = app(AIServiceInterface::class);
+
+            // Combine title and content for better context
+            $fullContent = $title ? "Title: {$title}\n\n{$content}" : $content;
+            $meta = $ai->generateSEOMeta($fullContent);
+
+            return response()->json($meta);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Upload an image for blog posts.
+     */
+    public function uploadImage(Request $request): JsonResponse
+    {
+        $request->validate([
+            'image' => 'required|image|mimes:jpg,jpeg,png,gif,webp|max:5120', // 5MB max
+        ]);
+
+        try {
+            $file = $request->file('image');
+            $filename = Str::uuid().'.'.$file->getClientOriginalExtension();
+
+            // Store in public disk under blog-images folder
+            $path = $file->storeAs('blog-images', $filename, 'public');
+
+            return response()->json([
+                'url' => Storage::disk('public')->url($path),
+                'path' => $path,
+                'filename' => $filename,
+            ]);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
