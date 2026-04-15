@@ -20,8 +20,8 @@
     ],
     "require": {
         "php": "^8.2",
-        "laravel/framework": "^11.0|^12.0",
-        "inertiajs/inertia-laravel": "^1.0|^2.0"
+        "laravel/framework": "^11.0|^12.0|^13.0",
+        "inertiajs/inertia-laravel": "^1.0|^2.0|^3.0"
     },
     "suggest": {
         "noeticit/admin-core": "Required for menu registration and permission management"
