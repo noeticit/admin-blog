@@ -2,7 +2,7 @@
 import { router, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import { Edit, Trash2, Plus, X } from 'lucide-vue-next';
-import AdminLayout from '@/layouts/AdminLayout.vue';
+import AppLayout from '@/layouts/AppLayout.vue';
 
 interface Category {
     id: number;
@@ -74,7 +74,7 @@ const deleteCategory = (id: number) => {
 </script>
 
 <template>
-    <AdminLayout>
+    <AppLayout>
         <div class="space-y-6">
             <!-- Header -->
             <div class="flex items-center justify-between">
@@ -238,5 +238,5 @@ const deleteCategory = (id: number) => {
                 </div>
             </div>
         </div>
-    </AdminLayout>
+    </AppLayout>
 </template>

@@ -16,7 +16,7 @@ import {
     RefreshCw,
     SlidersHorizontal,
 } from 'lucide-vue-next';
-import AdminLayout from '@/layouts/AdminLayout.vue';
+import AppLayout from '@/layouts/AppLayout.vue';
 
 interface Post {
     id: number;
@@ -252,7 +252,7 @@ const formatDate = (date: string) => {
 </script>
 
 <template>
-    <AdminLayout>
+    <AppLayout>
         <div class="space-y-6">
             <!-- Header -->
             <div class="flex items-center justify-between">
@@ -787,5 +787,5 @@ const formatDate = (date: string) => {
                 </div>
             </div>
         </div>
-    </AdminLayout>
+    </AppLayout>
 </template>

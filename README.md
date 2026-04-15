@@ -53,9 +53,11 @@ php artisan vendor:publish --tag=blog-all
 
 # Or publish selectively
 php artisan vendor:publish --tag=blog-config
-php artisan vendor:publish --tag=blog-pages
-php artisan vendor:publish --tag=blog-components
+php artisan vendor:publish --tag=blog-pages       # → resources/js/Pages/Admin/Blog/
+php artisan vendor:publish --tag=blog-components   # → resources/js/components/admin-blog/
 ```
+
+> **Important:** You must publish both `blog-pages` and `blog-components`. The pages import components from `@/components/admin-blog/`.
 
 ### 4. Run migrations
 
@@ -67,6 +69,17 @@ php artisan migrate
 
 ```bash
 npm run build
+```
+
+### 6. Layout customization
+
+Published Vue pages use `AppLayout` by default (`@/layouts/AppLayout.vue`). If your project uses a different layout, update the import in the published pages:
+
+```vue
+// Change this:
+import AppLayout from '@/layouts/AppLayout.vue';
+// To your layout:
+import AppLayout from '@/layouts/YourLayout.vue';
 ```
 
 ## Configuration

@@ -2,11 +2,11 @@
 import { useForm } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
 import { Save, ArrowLeft, Eye, Calendar } from 'lucide-vue-next';
-import AdminLayout from '@/layouts/AdminLayout.vue';
-import MetaTagsGenerator from '../Components/MetaTagsGenerator.vue';
-import SEOPreview from '../Components/SEOPreview.vue';
-import RichTextEditor from '../Components/RichTextEditor.vue';
-import FeaturedImageUpload from '../Components/FeaturedImageUpload.vue';
+import AppLayout from '@/layouts/AppLayout.vue';
+import MetaTagsGenerator from '@/components/admin-blog/MetaTagsGenerator.vue';
+import SEOPreview from '@/components/admin-blog/SEOPreview.vue';
+import RichTextEditor from '@/components/admin-blog/RichTextEditor.vue';
+import FeaturedImageUpload from '@/components/admin-blog/FeaturedImageUpload.vue';
 
 interface Category {
     id: number;
@@ -91,7 +91,7 @@ const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https:
 </script>
 
 <template>
-    <AdminLayout>
+    <AppLayout>
         <div class="space-y-6">
             <!-- Header -->
             <div class="flex items-center justify-between">
@@ -377,5 +377,5 @@ const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https:
                 </div>
             </form>
         </div>
-    </AdminLayout>
+    </AppLayout>
 </template>
