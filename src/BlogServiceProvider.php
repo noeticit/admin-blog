@@ -3,80 +3,64 @@
 namespace Noeticit\AdminBlog;
 
 use Illuminate\Support\ServiceProvider;
-use Noeticit\Admin\Services\MenuRegistry;
-use Noeticit\Admin\Services\PermissionRegistry;
 
 class BlogServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
     public function register(): void
     {
-        // Merge package configuration
         $this->mergeConfigFrom(
             __DIR__.'/../config/blog.php', 'blog'
         );
     }
 
-    /**
-     * Bootstrap any application services.
-     */
     public function boot(): void
     {
-        // Load routes
         $this->loadRoutesFrom(__DIR__.'/../routes/blog.php');
 
-        // Load migrations
         $this->loadMigrationsFrom(__DIR__.'/Database/Migrations');
 
-        // Register publishables
         $this->registerPublishables();
 
-        // Register menu items
-        $this->registerMenu();
-
-        // Register permissions
-        $this->registerPermissions();
-    }
-
-    /**
-     * Register publishable assets.
-     */
-    protected function registerPublishables(): void
-    {
-        if ($this->app->runningInConsole()) {
-            // Publish configuration
-            $this->publishes([
-                __DIR__.'/../config/blog.php' => config_path('blog.php'),
-            ], 'blog-config');
-
-            // Publish Vue pages directly into pages directory
-            $this->publishes([
-                __DIR__.'/../resources/js/Pages' => resource_path('js/pages/Admin/Blog'),
-                __DIR__.'/../resources/js/Components' => resource_path('js/components/admin-blog'),
-            ], 'blog-assets');
-
-            // Publish pages only (for selective publishing)
-            $this->publishes([
-                __DIR__.'/../resources/js/Pages' => resource_path('js/pages/Admin/Blog'),
-            ], 'blog-pages');
-
-            // Publish all
-            $this->publishes([
-                __DIR__.'/../config/blog.php' => config_path('blog.php'),
-                __DIR__.'/../resources/js/Pages' => resource_path('js/pages/Admin/Blog'),
-                __DIR__.'/../resources/js/Components' => resource_path('js/components/admin-blog'),
-            ], 'blog-all');
+        // Register menu and permissions only if admin-core is installed
+        if (class_exists(\Noeticit\Admin\Services\MenuRegistry::class)) {
+            $this->registerMenu();
+            $this->registerPermissions();
         }
     }
 
-    /**
-     * Register menu items.
-     */
+    protected function registerPublishables(): void
+    {
+        if (! $this->app->runningInConsole()) {
+            return;
+        }
+
+        $this->publishes([
+            __DIR__.'/../config/blog.php' => config_path('blog.php'),
+        ], 'blog-config');
+
+        $this->publishes([
+            __DIR__.'/../resources/js/Pages' => resource_path('js/Pages/Admin/Blog'),
+            __DIR__.'/../resources/js/Components' => resource_path('js/components/admin-blog'),
+        ], 'blog-assets');
+
+        $this->publishes([
+            __DIR__.'/../resources/js/Pages' => resource_path('js/Pages/Admin/Blog'),
+        ], 'blog-pages');
+
+        $this->publishes([
+            __DIR__.'/../resources/js/Components' => resource_path('js/components/admin-blog'),
+        ], 'blog-components');
+
+        $this->publishes([
+            __DIR__.'/../config/blog.php' => config_path('blog.php'),
+            __DIR__.'/../resources/js/Pages' => resource_path('js/Pages/Admin/Blog'),
+            __DIR__.'/../resources/js/Components' => resource_path('js/components/admin-blog'),
+        ], 'blog-all');
+    }
+
     protected function registerMenu(): void
     {
-        MenuRegistry::register([
+        \Noeticit\Admin\Services\MenuRegistry::register([
             'label' => 'Blog',
             'icon' => 'FileText',
             'route' => 'admin.blog.posts.index',
@@ -94,27 +78,23 @@ class BlogServiceProvider extends ServiceProvider
                     'route' => 'admin.blog.posts.create',
                     'permission' => 'blog.create',
                 ],
-                // TODO: Add Categories and Tags pages
-                // [
-                //     'label' => 'Categories',
-                //     'route' => 'admin.blog.categories.index',
-                //     'permission' => 'blog.manage_categories',
-                // ],
-                // [
-                //     'label' => 'Tags',
-                //     'route' => 'admin.blog.tags.index',
-                //     'permission' => 'blog.manage_tags',
-                // ],
+                [
+                    'label' => 'Categories',
+                    'route' => 'admin.blog.categories.index',
+                    'permission' => 'blog.manage_categories',
+                ],
+                [
+                    'label' => 'Tags',
+                    'route' => 'admin.blog.tags.index',
+                    'permission' => 'blog.manage_tags',
+                ],
             ],
         ]);
     }
 
-    /**
-     * Register permissions.
-     */
     protected function registerPermissions(): void
     {
-        PermissionRegistry::register('admin-blog', [
+        \Noeticit\Admin\Services\PermissionRegistry::register('admin-blog', [
             [
                 'name' => 'View Blog Posts',
                 'slug' => 'blog.view',

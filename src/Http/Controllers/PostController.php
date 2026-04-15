@@ -8,21 +8,25 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
-use Noeticit\Admin\Services\AI\AIServiceInterface;
+use Noeticit\AdminBlog\Http\Requests\StorePostRequest;
+use Noeticit\AdminBlog\Http\Requests\UpdatePostRequest;
 use Noeticit\AdminBlog\Models\Category;
 use Noeticit\AdminBlog\Models\Post;
 use Noeticit\AdminBlog\Models\Tag;
+use Noeticit\AdminBlog\Services\PostService;
 
 class PostController
 {
+    public function __construct(
+        private readonly PostService $postService,
+    ) {}
+
     public function index(Request $request): Response
     {
         $query = Post::query()->with(['category', 'author', 'tags']);
 
-        // Apply filters
         if ($request->search) {
             $query->search($request->search);
         }
@@ -39,19 +43,17 @@ class PostController
             $query->byAuthor($request->author);
         }
 
-        // Apply sorting
         $sortBy = $request->get('sort', 'created_at');
         $sortDirection = $request->get('direction', 'desc');
-
         $query->orderBy($sortBy === 'views' ? 'views_count' : $sortBy, $sortDirection);
 
-        $posts = $query->paginate($request->get('per_page', 15))->withQueryString();
+        $posts = $query->paginate(
+            $request->get('per_page', config('blog.pagination.per_page', 15))
+        )->withQueryString();
 
-        // Get filter options
         $categories = Category::all();
         $tags = Tag::all();
 
-        // Stats
         $stats = [
             'total' => Post::count(),
             'published' => Post::where('status', 'published')->count(),
@@ -59,7 +61,7 @@ class PostController
             'archived' => Post::where('status', 'archived')->count(),
         ];
 
-        return Inertia::render('Admin/Blog/Index', [
+        return Inertia::render(config('blog.inertia.page_prefix', 'Admin/Blog').'/Index', [
             'posts' => $posts,
             'categories' => $categories,
             'tags' => $tags,
@@ -73,57 +75,20 @@ class PostController
         $categories = Category::all();
         $tags = Tag::all();
 
-        return Inertia::render('Admin/Blog/Create', [
+        return Inertia::render(config('blog.inertia.page_prefix', 'Admin/Blog').'/Create', [
             'categories' => $categories,
             'tags' => $tags,
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(StorePostRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'title' => 'required|max:255',
-            'slug' => 'nullable|max:255|unique:'.config('blog.database.table_prefix').'posts',
-            'content' => 'required|string',
-            'body_blocks' => 'nullable|array',
-            'featured_image' => 'nullable|string',
-            'status' => 'required|in:draft,published,archived',
-            'published_at' => 'nullable|date',
-            'category_id' => 'nullable|exists:'.config('blog.database.table_prefix').'categories,id',
-            'tags' => 'nullable|array',
-            'tags.*' => 'exists:'.config('blog.database.table_prefix').'tags,id',
+        $authGuard = config('blog.author.guard', 'web');
 
-            // SEO fields
-            'meta_title' => 'nullable|max:60',
-            'meta_description' => 'nullable|max:160',
-            'meta_keywords' => 'nullable|array',
-            'focus_keyword' => 'nullable|string',
-            'og_title' => 'nullable|string',
-            'og_description' => 'nullable|string',
-            'og_image' => 'nullable|string',
-            'canonical_url' => 'nullable|url',
-        ]);
-
-        // Generate slug if not provided
-        if (empty($validated['slug'])) {
-            $validated['slug'] = Str::slug($validated['title']);
-        }
-
-        // Set author
-        $validated['author_id'] = Auth::guard('admin')->id();
-
-        // Calculate reading time and word count
-        $wordCount = str_word_count(strip_tags($validated['content']));
-        $validated['word_count'] = $wordCount;
-        $validated['reading_time'] = max(1, ceil($wordCount / 200)); // 200 words per minute
-
-        // Create post
-        $post = Post::create($validated);
-
-        // Sync tags
-        if (isset($validated['tags'])) {
-            $post->tags()->sync($validated['tags']);
-        }
+        $this->postService->create(
+            $request->validated(),
+            Auth::guard($authGuard)->id()
+        );
 
         return redirect()->route('admin.blog.posts.index')
             ->with('success', 'Post created successfully.');
@@ -133,7 +98,7 @@ class PostController
     {
         $post->load(['category', 'author', 'tags']);
 
-        return Inertia::render('Admin/Blog/Show', [
+        return Inertia::render(config('blog.inertia.page_prefix', 'Admin/Blog').'/Show', [
             'post' => $post,
         ]);
     }
@@ -145,63 +110,19 @@ class PostController
         $categories = Category::all();
         $tags = Tag::all();
 
-        // Transform post tags to array of IDs for the form
         $postData = $post->toArray();
         $postData['tags'] = $post->tags->pluck('id')->toArray();
 
-        return Inertia::render('Admin/Blog/Edit', [
+        return Inertia::render(config('blog.inertia.page_prefix', 'Admin/Blog').'/Edit', [
             'post' => $postData,
             'categories' => $categories,
             'tags' => $tags,
         ]);
     }
 
-    public function update(Request $request, Post $post): RedirectResponse
+    public function update(UpdatePostRequest $request, Post $post): RedirectResponse
     {
-        $validated = $request->validate([
-            'title' => 'required|max:255',
-            'slug' => [
-                'nullable',
-                'max:255',
-                Rule::unique(config('blog.database.table_prefix').'posts')->ignore($post->id),
-            ],
-            'content' => 'required|string',
-            'body_blocks' => 'nullable|array',
-            'featured_image' => 'nullable|string',
-            'status' => 'required|in:draft,published,archived',
-            'published_at' => 'nullable|date',
-            'category_id' => 'nullable|exists:'.config('blog.database.table_prefix').'categories,id',
-            'tags' => 'nullable|array',
-            'tags.*' => 'exists:'.config('blog.database.table_prefix').'tags,id',
-
-            // SEO fields
-            'meta_title' => 'nullable|max:60',
-            'meta_description' => 'nullable|max:160',
-            'meta_keywords' => 'nullable|array',
-            'focus_keyword' => 'nullable|string',
-            'og_title' => 'nullable|string',
-            'og_description' => 'nullable|string',
-            'og_image' => 'nullable|string',
-            'canonical_url' => 'nullable|url',
-        ]);
-
-        // Update slug if changed
-        if (empty($validated['slug'])) {
-            $validated['slug'] = Str::slug($validated['title']);
-        }
-
-        // Recalculate reading time and word count
-        $wordCount = str_word_count(strip_tags($validated['content']));
-        $validated['word_count'] = $wordCount;
-        $validated['reading_time'] = max(1, ceil($wordCount / 200));
-
-        // Update post
-        $post->update($validated);
-
-        // Sync tags
-        if (isset($validated['tags'])) {
-            $post->tags()->sync($validated['tags']);
-        }
+        $this->postService->update($post, $request->validated());
 
         return redirect()->route('admin.blog.posts.index')
             ->with('success', 'Post updated successfully.');
@@ -209,10 +130,27 @@ class PostController
 
     public function destroy(Post $post): RedirectResponse
     {
-        $post->delete();
+        $this->postService->delete($post);
 
         return redirect()->route('admin.blog.posts.index')
             ->with('success', 'Post deleted successfully.');
+    }
+
+    /**
+     * Bulk actions on multiple posts.
+     */
+    public function bulkAction(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'action' => ['required', 'in:delete,publish,draft,archive'],
+            'ids' => ['required', 'array'],
+            'ids.*' => ['exists:'.config('blog.database.table_prefix').'posts,id'],
+        ]);
+
+        $message = $this->postService->bulkAction($request->action, $request->ids);
+
+        return redirect()->route('admin.blog.posts.index')
+            ->with('success', $message);
     }
 
     /**
@@ -220,12 +158,13 @@ class PostController
      */
     public function generateMeta(Request $request, Post $post): JsonResponse
     {
-        if (!config('admin.ai.enabled')) {
-            return response()->json(['error' => 'AI service is disabled'], 400);
+        $aiService = config('blog.ai.service');
+        if (! $aiService || ! config('blog.features.ai_suggestions', false)) {
+            return response()->json(['error' => 'AI service is not configured'], 400);
         }
 
         try {
-            $ai = app(AIServiceInterface::class);
+            $ai = app($aiService);
             $meta = $ai->generateSEOMeta($post->content);
 
             return response()->json($meta);
@@ -235,17 +174,18 @@ class PostController
     }
 
     /**
-     * Generate SEO meta tags using AI (standalone - no post required).
+     * Generate SEO meta tags from content (no existing post required).
      */
     public function generateMetaFromContent(Request $request): JsonResponse
     {
         $request->validate([
-            'title' => 'nullable|string|max:255',
-            'content' => 'nullable|string',
+            'title' => ['nullable', 'string', 'max:255'],
+            'content' => ['nullable', 'string'],
         ]);
 
-        if (!config('admin.ai.enabled', false)) {
-            return response()->json(['error' => 'AI service is disabled'], 400);
+        $aiService = config('blog.ai.service');
+        if (! $aiService || ! config('blog.features.ai_suggestions', false)) {
+            return response()->json(['error' => 'AI service is not configured'], 400);
         }
 
         $title = $request->input('title', '');
@@ -256,9 +196,7 @@ class PostController
         }
 
         try {
-            $ai = app(AIServiceInterface::class);
-
-            // Combine title and content for better context
+            $ai = app($aiService);
             $fullContent = $title ? "Title: {$title}\n\n{$content}" : $content;
             $meta = $ai->generateSEOMeta($fullContent);
 
@@ -274,59 +212,22 @@ class PostController
     public function uploadImage(Request $request): JsonResponse
     {
         $request->validate([
-            'image' => 'required|image|mimes:jpg,jpeg,png,gif,webp|max:5120', // 5MB max
+            'image' => ['required', 'image', 'mimes:jpg,jpeg,png,gif,webp', 'max:5120'],
         ]);
 
         try {
             $file = $request->file('image');
             $filename = Str::uuid().'.'.$file->getClientOriginalExtension();
-
-            // Store in public disk under blog-images folder
-            $path = $file->storeAs('blog-images', $filename, 'public');
+            $disk = config('blog.uploads.disk', 'public');
+            $path = $file->storeAs(config('blog.uploads.path', 'blog-images'), $filename, $disk);
 
             return response()->json([
-                'url' => Storage::disk('public')->url($path),
+                'url' => Storage::disk($disk)->url($path),
                 'path' => $path,
                 'filename' => $filename,
             ]);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
-    }
-
-    /**
-     * Bulk actions.
-     */
-    public function bulkAction(Request $request): RedirectResponse
-    {
-        $request->validate([
-            'action' => 'required|in:delete,publish,draft,archive',
-            'ids' => 'required|array',
-            'ids.*' => 'exists:'.config('blog.database.table_prefix').'posts,id',
-        ]);
-
-        $posts = Post::whereIn('id', $request->ids);
-
-        switch ($request->action) {
-            case 'delete':
-                $posts->delete();
-                $message = 'Posts deleted successfully.';
-                break;
-            case 'publish':
-                $posts->update(['status' => 'published', 'published_at' => now()]);
-                $message = 'Posts published successfully.';
-                break;
-            case 'draft':
-                $posts->update(['status' => 'draft']);
-                $message = 'Posts moved to draft.';
-                break;
-            case 'archive':
-                $posts->update(['status' => 'archived']);
-                $message = 'Posts archived successfully.';
-                break;
-        }
-
-        return redirect()->route('admin.blog.posts.index')
-            ->with('success', $message);
     }
 }

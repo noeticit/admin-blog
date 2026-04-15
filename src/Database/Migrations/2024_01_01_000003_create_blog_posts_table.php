@@ -6,23 +6,23 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         $prefix = config('blog.database.table_prefix');
-        $adminPrefix = config('admin.database.table_prefix');
+        $authorTable = config('blog.author.table', 'users');
 
-        Schema::create($prefix.'posts', function (Blueprint $table) use ($prefix, $adminPrefix) {
+        Schema::create($prefix.'posts', function (Blueprint $table) use ($prefix, $authorTable) {
             $table->id();
             $table->string('title');
             $table->string('slug')->unique();
+            $table->text('excerpt')->nullable();
             $table->longText('content');
             $table->json('body_blocks')->nullable();
             $table->string('featured_image')->nullable();
             $table->enum('status', ['draft', 'published', 'archived'])->default('draft');
             $table->timestamp('published_at')->nullable();
+            $table->timestamp('updated_content_at')->nullable();
+            $table->string('source_url')->nullable();
 
             // SEO Fields
             $table->string('meta_title')->nullable();
@@ -41,7 +41,7 @@ return new class extends Migration
 
             // Relationships
             $table->foreignId('category_id')->nullable()->constrained($prefix.'categories')->nullOnDelete();
-            $table->foreignId('author_id')->constrained($adminPrefix.'users')->cascadeOnDelete();
+            $table->foreignId('author_id')->constrained($authorTable)->cascadeOnDelete();
 
             // Analytics
             $table->integer('reading_time')->nullable();
@@ -64,12 +64,10 @@ return new class extends Migration
             $table->index('published_at');
             $table->index('category_id');
             $table->index('author_id');
+            $table->index('source_url');
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists(config('blog.database.table_prefix').'posts');

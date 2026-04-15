@@ -5,17 +5,8 @@ use Noeticit\AdminBlog\Http\Controllers\CategoryController;
 use Noeticit\AdminBlog\Http\Controllers\PostController;
 use Noeticit\AdminBlog\Http\Controllers\TagController;
 
-/*
-|--------------------------------------------------------------------------
-| Blog Admin Routes
-|--------------------------------------------------------------------------
-|
-| These routes handle blog management in the admin panel.
-|
-*/
-
-Route::middleware(['web', 'admin.auth'])
-    ->prefix('admin/blog')
+Route::middleware(config('blog.routes.middleware', ['web', 'auth']))
+    ->prefix(config('blog.routes.prefix', 'admin/blog'))
     ->name('admin.blog.')
     ->group(function () {
         // Posts
@@ -26,8 +17,12 @@ Route::middleware(['web', 'admin.auth'])
         Route::post('upload-image', [PostController::class, 'uploadImage'])->name('upload-image');
 
         // Categories
-        Route::resource('categories', CategoryController::class)->except(['show']);
+        if (config('blog.features.categories', true)) {
+            Route::resource('categories', CategoryController::class)->except(['show']);
+        }
 
         // Tags
-        Route::resource('tags', TagController::class)->except(['show']);
+        if (config('blog.features.tags', true)) {
+            Route::resource('tags', TagController::class)->except(['show']);
+        }
     });

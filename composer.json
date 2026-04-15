@@ -1,6 +1,6 @@
 {
     "name": "noeticit/admin-blog",
-    "description": "Blog management module for Noetic Admin Core",
+    "description": "Reusable blog management package for Laravel with Inertia.js, SEO, categories, tags, and AI meta generation",
     "type": "library",
     "license": "proprietary",
     "keywords": [
@@ -8,6 +8,8 @@
         "admin",
         "blog",
         "cms",
+        "inertia",
+        "seo",
         "noetic"
     ],
     "authors": [
@@ -18,8 +20,11 @@
     ],
     "require": {
         "php": "^8.2",
-        "noeticit/admin-core": "^1.0|@dev",
-        "laravel/framework": "^11.0|^12.0"
+        "laravel/framework": "^11.0|^12.0",
+        "inertiajs/inertia-laravel": "^1.0|^2.0"
+    },
+    "suggest": {
+        "noeticit/admin-core": "Required for menu registration and permission management"
     },
     "autoload": {
         "psr-4": {

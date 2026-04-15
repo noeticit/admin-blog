@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 
 class Post extends Model
 {
@@ -24,11 +25,16 @@ class Post extends Model
     protected $fillable = [
         'title',
         'slug',
+        'excerpt',
         'content',
         'body_blocks',
         'featured_image',
         'status',
         'published_at',
+        'updated_content_at',
+        'source_url',
+
+        // SEO Fields
         'meta_title',
         'meta_description',
         'meta_keywords',
@@ -42,31 +48,46 @@ class Post extends Model
         'focus_keyword',
         'secondary_keywords',
         'schema_markup',
+
+        // Relationships
         'category_id',
         'author_id',
+
+        // Computed
         'reading_time',
         'word_count',
         'views_count',
+
+        // Robots
         'robots_index',
         'robots_follow',
+
+        // Table of Contents
         'show_toc',
         'toc_data',
     ];
 
-    protected $casts = [
-        'published_at' => 'datetime',
-        'views_count' => 'integer',
-        'reading_time' => 'integer',
-        'word_count' => 'integer',
-        'meta_keywords' => 'array',
-        'secondary_keywords' => 'array',
-        'schema_markup' => 'array',
-        'body_blocks' => 'array',
-        'toc_data' => 'array',
-        'robots_index' => 'boolean',
-        'robots_follow' => 'boolean',
-        'show_toc' => 'boolean',
-    ];
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'published_at' => 'datetime',
+            'updated_content_at' => 'datetime',
+            'views_count' => 'integer',
+            'reading_time' => 'integer',
+            'word_count' => 'integer',
+            'meta_keywords' => 'array',
+            'secondary_keywords' => 'array',
+            'schema_markup' => 'array',
+            'body_blocks' => 'array',
+            'toc_data' => 'array',
+            'robots_index' => 'boolean',
+            'robots_follow' => 'boolean',
+            'show_toc' => 'boolean',
+        ];
+    }
 
     protected $attributes = [
         'status' => 'draft',
@@ -85,11 +106,12 @@ class Post extends Model
     }
 
     /**
-     * Get the author for the post (admin user).
+     * Get the author for the post.
+     * Uses the configurable author model so each project can use its own User model.
      */
     public function author(): BelongsTo
     {
-        return $this->belongsTo(config('admin.auth.model'), 'author_id');
+        return $this->belongsTo(config('blog.author.model', 'App\\Models\\User'), 'author_id');
     }
 
     /**
@@ -98,6 +120,7 @@ class Post extends Model
     public function tags(): BelongsToMany
     {
         $prefix = config('blog.database.table_prefix');
+
         return $this->belongsToMany(Tag::class, $prefix.'post_tag', 'post_id', 'tag_id');
     }
 
@@ -107,7 +130,7 @@ class Post extends Model
     public function scopePublished(Builder $query): Builder
     {
         return $query->where('status', 'published')
-                    ->where('published_at', '<=', now());
+            ->where('published_at', '<=', now());
     }
 
     /**
@@ -115,29 +138,30 @@ class Post extends Model
      */
     public function scopeSearch(Builder $query, ?string $search): Builder
     {
-        if (!$search) {
+        if (! $search) {
             return $query;
         }
 
         return $query->where(function ($q) use ($search) {
             $q->where('title', 'like', "%{$search}%")
-              ->orWhere('content', 'like', "%{$search}%")
-              ->orWhere('meta_description', 'like', "%{$search}%")
-              ->orWhereHas('category', function ($categoryQuery) use ($search) {
-                  $categoryQuery->where('name', 'like', "%{$search}%");
-              })
-              ->orWhereHas('tags', function ($tagQuery) use ($search) {
-                  $tagQuery->where('name', 'like', "%{$search}%");
-              });
+                ->orWhere('content', 'like', "%{$search}%")
+                ->orWhere('excerpt', 'like', "%{$search}%")
+                ->orWhere('meta_description', 'like', "%{$search}%")
+                ->orWhereHas('category', function ($categoryQuery) use ($search) {
+                    $categoryQuery->where('name', 'like', "%{$search}%");
+                })
+                ->orWhereHas('tags', function ($tagQuery) use ($search) {
+                    $tagQuery->where('name', 'like', "%{$search}%");
+                });
         });
     }
 
     /**
-     * Scope to filter by category.
+     * Scope to filter by category slug.
      */
     public function scopeByCategory(Builder $query, ?string $categorySlug): Builder
     {
-        if (!$categorySlug) {
+        if (! $categorySlug) {
             return $query;
         }
 
@@ -147,11 +171,11 @@ class Post extends Model
     }
 
     /**
-     * Scope to filter by tag.
+     * Scope to filter by tag slug.
      */
     public function scopeByTag(Builder $query, ?string $tagSlug): Builder
     {
-        if (!$tagSlug) {
+        if (! $tagSlug) {
             return $query;
         }
 
@@ -165,7 +189,7 @@ class Post extends Model
      */
     public function scopeByStatus(Builder $query, ?string $status): Builder
     {
-        if (!$status) {
+        if (! $status) {
             return $query;
         }
 
@@ -177,11 +201,19 @@ class Post extends Model
      */
     public function scopeByAuthor(Builder $query, ?int $authorId): Builder
     {
-        if (!$authorId) {
+        if (! $authorId) {
             return $query;
         }
 
         return $query->where('author_id', $authorId);
+    }
+
+    /**
+     * Scope to filter by source URL.
+     */
+    public function scopeBySourceUrl(Builder $query, string $sourceUrl): Builder
+    {
+        return $query->where('source_url', $sourceUrl);
     }
 
     /**
@@ -201,16 +233,28 @@ class Post extends Model
     }
 
     /**
+     * Get the category slug, defaulting to 'general'.
+     */
+    public function getCategorySlugAttribute(): string
+    {
+        return $this->category?->slug ?? 'general';
+    }
+
+    /**
      * Get robots meta content.
      */
     public function getRobotsMetaContent(): string
     {
         $robots = [];
 
-        if (!$this->robots_index) $robots[] = 'noindex';
-        if (!$this->robots_follow) $robots[] = 'nofollow';
+        if (! $this->robots_index) {
+            $robots[] = 'noindex';
+        }
+        if (! $this->robots_follow) {
+            $robots[] = 'nofollow';
+        }
 
-        return !empty($robots) ? implode(', ', $robots) : 'index, follow';
+        return ! empty($robots) ? implode(', ', $robots) : 'index, follow';
     }
 
     /**
@@ -218,10 +262,51 @@ class Post extends Model
      */
     public function isSEOOptimized(): bool
     {
-        return !empty($this->meta_title) &&
-               !empty($this->meta_description) &&
-               !empty($this->focus_keyword) &&
-               !empty($this->og_title) &&
-               !empty($this->og_description);
+        return ! empty($this->meta_title)
+            && ! empty($this->meta_description)
+            && ! empty($this->focus_keyword)
+            && ! empty($this->og_title)
+            && ! empty($this->og_description);
+    }
+
+    /**
+     * Generate a unique slug from a title.
+     */
+    public static function generateUniqueSlug(string $title, ?int $ignoreId = null): string
+    {
+        $slug = Str::slug($title);
+        $originalSlug = $slug;
+        $counter = 1;
+
+        $query = static::where('slug', $slug);
+        if ($ignoreId) {
+            $query->where('id', '!=', $ignoreId);
+        }
+
+        while ($query->exists()) {
+            $slug = $originalSlug.'-'.$counter;
+            $counter++;
+            $query = static::where('slug', $slug);
+            if ($ignoreId) {
+                $query->where('id', '!=', $ignoreId);
+            }
+        }
+
+        return $slug;
+    }
+
+    /**
+     * Calculate reading time and word count from content.
+     *
+     * @return array{reading_time: int, word_count: int}
+     */
+    public static function calculateReadingMetrics(string $content): array
+    {
+        $wordCount = str_word_count(strip_tags($content));
+
+        return [
+            'reading_time' => max(1, (int) ceil($wordCount / 200)),
+            'word_count' => $wordCount,
+        ];
     }
 }
