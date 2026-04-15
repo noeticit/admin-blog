@@ -56,11 +56,11 @@ const generateSlug = () => {
 
 const submit = () => {
     if (editingCategory.value) {
-        form.put(route('admin.blog.categories.update', editingCategory.value.id), {
+        form.put(`/admin/blog/categories/${editingCategory.value.id}`, {
             onSuccess: () => closeModal(),
         });
     } else {
-        form.post(route('admin.blog.categories.store'), {
+        form.post('/admin/blog/categories', {
             onSuccess: () => closeModal(),
         });
     }
@@ -68,7 +68,7 @@ const submit = () => {
 
 const deleteCategory = (id: number) => {
     if (confirm('Are you sure you want to delete this category?')) {
-        router.delete(route('admin.blog.categories.destroy', id));
+        router.delete(`/admin/blog/categories/${id}`);
     }
 };
 </script>

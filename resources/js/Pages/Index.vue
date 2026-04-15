@@ -148,7 +148,7 @@ const applyFilters = () => {
     if (dateFrom.value) params.date_from = dateFrom.value;
     if (dateTo.value) params.date_to = dateTo.value;
 
-    router.get(route('admin.blog.posts.index'), params, {
+    router.get('/admin/blog/posts', params, {
         preserveState: true,
         preserveScroll: true,
     });
@@ -165,7 +165,7 @@ const clearFilters = () => {
     dateFrom.value = '';
     dateTo.value = '';
 
-    router.get(route('admin.blog.posts.index'), {}, {
+    router.get('/admin/blog/posts', {}, {
         preserveState: true,
         preserveScroll: true,
     });
@@ -188,7 +188,7 @@ const filterByStatus = (status: string) => {
 
 const deletePost = (id: number) => {
     if (confirm('Are you sure you want to delete this post?')) {
-        router.delete(route('admin.blog.posts.destroy', id));
+        router.delete(`/admin/blog/posts/${id}`);
     }
 };
 
@@ -203,7 +203,7 @@ const bulkAction = (action: string) => {
     };
 
     if (confirm(`Are you sure you want to ${actionLabels[action]} ${selectedPosts.value.length} post(s)?`)) {
-        router.post(route('admin.blog.posts.bulk-action'), {
+        router.post('/admin/blog/posts/bulk-action', {
             action: action,
             ids: selectedPosts.value,
         }, {
@@ -263,7 +263,7 @@ const formatDate = (date: string) => {
                     </p>
                 </div>
                 <a
-                    :href="route('admin.blog.posts.create')"
+                    :href="'/admin/blog/posts/create'"
                     class="inline-flex items-center px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
                 >
                     <Plus class="h-4 w-4 mr-2" />
@@ -645,7 +645,7 @@ const formatDate = (date: string) => {
                                 <td class="px-4 py-4">
                                     <div>
                                         <a
-                                            :href="route('admin.blog.posts.edit', post.id)"
+                                            :href="`/admin/blog/posts/${post.id}/edit`"
                                             class="text-sm font-medium text-slate-900 dark:text-white hover:text-primary transition-colors"
                                         >
                                             {{ post.title }}
@@ -711,7 +711,7 @@ const formatDate = (date: string) => {
                                 <td class="px-4 py-4 text-right">
                                     <div class="flex items-center justify-end gap-1">
                                         <a
-                                            :href="route('admin.blog.posts.edit', post.id)"
+                                            :href="`/admin/blog/posts/${post.id}/edit`"
                                             class="p-2 text-slate-600 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
                                             title="Edit"
                                         >
@@ -748,7 +748,7 @@ const formatDate = (date: string) => {
                             Clear Filters
                         </button>
                         <a
-                            :href="route('admin.blog.posts.create')"
+                            :href="'/admin/blog/posts/create'"
                             class="inline-flex items-center px-4 py-2 text-sm bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
                         >
                             <Plus class="h-4 w-4 mr-2" />

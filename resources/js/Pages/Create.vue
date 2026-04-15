@@ -83,7 +83,7 @@ const saveDraft = () => {
 
 // Submit form
 const submit = () => {
-    form.post(route('admin.blog.posts.store'));
+    form.post('/admin/blog/posts');
 };
 
 // Get base URL for SEO preview
@@ -97,7 +97,7 @@ const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https:
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-4">
                     <a
-                        :href="route('admin.blog.posts.index')"
+                        :href="'/admin/blog/posts'"
                         class="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
                     >
                         <ArrowLeft class="h-5 w-5" />

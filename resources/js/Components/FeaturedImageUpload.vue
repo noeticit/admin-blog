@@ -94,7 +94,7 @@ const uploadFile = async (file: File) => {
         const formData = new FormData();
         formData.append('image', file);
 
-        const response = await fetch(route('admin.blog.upload-image'), {
+        const response = await fetch('/admin/blog/upload-image', {
             method: 'POST',
             headers: {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',

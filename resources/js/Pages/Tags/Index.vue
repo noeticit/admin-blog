@@ -56,11 +56,11 @@ const generateSlug = () => {
 
 const submit = () => {
     if (editingTag.value) {
-        form.put(route('admin.blog.tags.update', editingTag.value.id), {
+        form.put(`/admin/blog/tags/${editingTag.value.id}`, {
             onSuccess: () => closeModal(),
         });
     } else {
-        form.post(route('admin.blog.tags.store'), {
+        form.post('/admin/blog/tags', {
             onSuccess: () => closeModal(),
         });
     }
@@ -68,7 +68,7 @@ const submit = () => {
 
 const deleteTag = (id: number) => {
     if (confirm('Are you sure you want to delete this tag?')) {
-        router.delete(route('admin.blog.tags.destroy', id));
+        router.delete(`/admin/blog/tags/${id}`);
     }
 };
 </script>

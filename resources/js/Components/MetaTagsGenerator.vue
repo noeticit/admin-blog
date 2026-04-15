@@ -54,7 +54,7 @@ const generateMetaTags = async () => {
     error.value = null;
 
     try {
-        const response = await fetch(route('admin.blog.posts.generate-meta'), {
+        const response = await fetch('/admin/blog/posts/generate-meta', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
