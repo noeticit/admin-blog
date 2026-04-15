@@ -97,6 +97,10 @@ class Post extends Model
         'show_toc' => true,
     ];
 
+    protected $appends = [
+        'category_slug',
+    ];
+
     /**
      * Get the category for the post.
      */
