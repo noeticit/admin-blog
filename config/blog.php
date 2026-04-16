@@ -98,4 +98,25 @@ return [
         'path' => 'blog-images',
         'max_size' => 5120, // KB
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | External API
+    |--------------------------------------------------------------------------
+    |
+    | Enable an API endpoint so external services (e.g. content agents)
+    | can create blog posts on this project remotely.
+    |
+    | Generate a key: php artisan blog:generate-key
+    | Or set any secure random string in BLOG_API_KEY.
+    |
+    */
+
+    'api' => [
+        'enabled' => env('BLOG_API_ENABLED', false),
+        'key' => env('BLOG_API_KEY'),
+        'prefix' => 'api/blog',
+        'middleware' => ['api'],
+        'rate_limit' => 60,
+    ],
 ];

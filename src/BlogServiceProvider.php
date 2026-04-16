@@ -17,6 +17,10 @@ class BlogServiceProvider extends ServiceProvider
     {
         $this->loadRoutesFrom(__DIR__.'/../routes/blog.php');
 
+        if (config('blog.api.enabled', false)) {
+            $this->loadRoutesFrom(__DIR__.'/../routes/api.php');
+        }
+
         $this->loadMigrationsFrom(__DIR__.'/Database/Migrations');
 
         $this->registerPublishables();
