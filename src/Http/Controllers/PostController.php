@@ -112,6 +112,7 @@ class PostController
 
         $postData = $post->toArray();
         $postData['tags'] = $post->tags->pluck('id')->toArray();
+        $postData['published_at'] = $post->published_at?->format('Y-m-d\TH:i');
 
         return Inertia::render(config('blog.inertia.page_prefix', 'Admin/Blog').'/Edit', [
             'post' => $postData,

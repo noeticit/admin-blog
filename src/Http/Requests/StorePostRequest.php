@@ -44,6 +44,17 @@ class StorePostRequest extends FormRequest
             'robots_index' => ['nullable', 'boolean'],
             'robots_follow' => ['nullable', 'boolean'],
             'show_toc' => ['nullable', 'boolean'],
+
+            // Content Brief fields
+            'search_intent' => ['nullable', 'string', 'in:informational,commercial,transactional,navigational'],
+            'customer_journey_stage' => ['nullable', 'string', 'in:awareness,consideration,decision'],
+            'topic_cluster' => ['nullable', 'string', 'in:pillar,supporting'],
+            'pillar_url' => ['nullable', 'string', 'url', 'max:500'],
+            'target_icp' => ['nullable', 'string', 'max:255'],
+            'target_geography' => ['nullable', 'string', 'max:32'],
+            'content_freshness' => ['nullable', 'string', 'in:evergreen,quarterly_update,news_sensitive'],
+            'conversion_goal' => ['nullable', 'string', 'max:64'],
+            'original_insight' => ['nullable', 'array'],
         ];
     }
 }

@@ -49,6 +49,17 @@ class Post extends Model
         'secondary_keywords',
         'schema_markup',
 
+        // Content Brief Fields
+        'search_intent',
+        'customer_journey_stage',
+        'topic_cluster',
+        'pillar_url',
+        'target_icp',
+        'target_geography',
+        'content_freshness',
+        'conversion_goal',
+        'original_insight',
+
         // Relationships
         'category_id',
         'author_id',
@@ -83,6 +94,7 @@ class Post extends Model
             'schema_markup' => 'array',
             'body_blocks' => 'array',
             'toc_data' => 'array',
+            'original_insight' => 'array',
             'robots_index' => 'boolean',
             'robots_follow' => 'boolean',
             'show_toc' => 'boolean',

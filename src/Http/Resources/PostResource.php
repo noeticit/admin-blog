@@ -33,7 +33,19 @@ class PostResource extends JsonResource
             'meta_title' => $this->meta_title,
             'meta_description' => $this->meta_description,
             'focus_keyword' => $this->focus_keyword,
+            'secondary_keywords' => $this->secondary_keywords,
             'canonical_url' => $this->canonical_url,
+
+            // Content Brief
+            'search_intent' => $this->search_intent,
+            'customer_journey_stage' => $this->customer_journey_stage,
+            'topic_cluster' => $this->topic_cluster,
+            'pillar_url' => $this->pillar_url,
+            'target_icp' => $this->target_icp,
+            'target_geography' => $this->target_geography,
+            'content_freshness' => $this->content_freshness,
+            'conversion_goal' => $this->conversion_goal,
+            'original_insight' => $this->original_insight,
 
             // Relationships
             'category' => new CategoryResource($this->whenLoaded('category')),
