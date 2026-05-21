@@ -2,7 +2,6 @@
 import { router, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import { Edit, Trash2, Plus, X } from 'lucide-vue-next';
-import AppLayout from '@/layouts/AppLayout.vue';
 
 interface Tag {
     id: number;
@@ -74,12 +73,11 @@ const deleteTag = (id: number) => {
 </script>
 
 <template>
-    <AppLayout>
-        <div class="space-y-6">
+        <div class="space-y-6 p-4 sm:p-6">
             <!-- Header -->
             <div class="flex items-center justify-between">
                 <div>
-                    <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Categories</h1>
+                    <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Tags</h1>
                     <p class="text-sm text-slate-600 dark:text-slate-400">
                         Manage blog tags
                     </p>
@@ -204,10 +202,10 @@ const deleteTag = (id: number) => {
                             <p v-if="form.errors.slug" class="mt-1 text-sm text-red-600">{{ form.errors.slug }}</p>
                         </div>
 
-                        <!--  -->
+                        <!-- Description -->
                         <div>
                             <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                                
+                                Description
                             </label>
                             <textarea
                                 v-model="form.description"
@@ -238,5 +236,4 @@ const deleteTag = (id: number) => {
                 </div>
             </div>
         </div>
-    </AppLayout>
 </template>

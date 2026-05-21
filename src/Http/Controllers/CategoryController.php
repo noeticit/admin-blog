@@ -21,11 +21,6 @@ class CategoryController
         ]);
     }
 
-    public function create(): Response
-    {
-        return Inertia::render(config('blog.inertia.page_prefix', 'Admin/Blog').'/Categories/Create');
-    }
-
     public function store(StoreCategoryRequest $request): RedirectResponse
     {
         $validated = $request->validated();
@@ -38,13 +33,6 @@ class CategoryController
 
         return redirect()->route('admin.blog.categories.index')
             ->with('success', 'Category created successfully.');
-    }
-
-    public function edit(Category $category): Response
-    {
-        return Inertia::render(config('blog.inertia.page_prefix', 'Admin/Blog').'/Categories/Edit', [
-            'category' => $category,
-        ]);
     }
 
     public function update(UpdateCategoryRequest $request, Category $category): RedirectResponse

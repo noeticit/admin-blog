@@ -2,7 +2,6 @@
 import { useForm } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
 import { Save, ArrowLeft, Eye, Calendar } from 'lucide-vue-next';
-import AppLayout from '@/layouts/AppLayout.vue';
 import MetaTagsGenerator from '@/components/admin-blog/MetaTagsGenerator.vue';
 import SEOPreview from '@/components/admin-blog/SEOPreview.vue';
 import RichTextEditor from '@/components/admin-blog/RichTextEditor.vue';
@@ -91,8 +90,7 @@ const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https:
 </script>
 
 <template>
-    <AppLayout>
-        <div class="space-y-6">
+        <div class="space-y-6 p-4 sm:p-6">
             <!-- Header -->
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-4">
@@ -377,5 +375,4 @@ const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https:
                 </div>
             </form>
         </div>
-    </AppLayout>
 </template>

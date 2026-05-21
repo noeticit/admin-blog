@@ -16,13 +16,13 @@ Route::middleware(config('blog.routes.middleware', ['web', 'auth']))
         Route::post('posts/generate-meta', [PostController::class, 'generateMetaFromContent'])->name('posts.generate-meta-content');
         Route::post('upload-image', [PostController::class, 'uploadImage'])->name('upload-image');
 
-        // Categories
+        // Categories — CRUD handled via modals on the index page
         if (config('blog.features.categories', true)) {
-            Route::resource('categories', CategoryController::class)->except(['show']);
+            Route::resource('categories', CategoryController::class)->except(['show', 'create', 'edit']);
         }
 
-        // Tags
+        // Tags — CRUD handled via modals on the index page
         if (config('blog.features.tags', true)) {
-            Route::resource('tags', TagController::class)->except(['show']);
+            Route::resource('tags', TagController::class)->except(['show', 'create', 'edit']);
         }
     });

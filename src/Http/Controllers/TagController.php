@@ -21,11 +21,6 @@ class TagController
         ]);
     }
 
-    public function create(): Response
-    {
-        return Inertia::render(config('blog.inertia.page_prefix', 'Admin/Blog').'/Tags/Create');
-    }
-
     public function store(StoreTagRequest $request): RedirectResponse
     {
         $validated = $request->validated();
@@ -38,13 +33,6 @@ class TagController
 
         return redirect()->route('admin.blog.tags.index')
             ->with('success', 'Tag created successfully.');
-    }
-
-    public function edit(Tag $tag): Response
-    {
-        return Inertia::render(config('blog.inertia.page_prefix', 'Admin/Blog').'/Tags/Edit', [
-            'tag' => $tag,
-        ]);
     }
 
     public function update(UpdateTagRequest $request, Tag $tag): RedirectResponse
