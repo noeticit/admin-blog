@@ -19,9 +19,21 @@ interface Tag {
     slug?: string;
 }
 
+interface CtaItem {
+    label: string;
+    description?: string;
+    shortcode: string;
+}
+
+interface CtaGroup {
+    label: string;
+    items: CtaItem[];
+}
+
 interface Props {
     categories: Category[];
     tags: Tag[];
+    cta?: CtaGroup[];
 }
 
 const props = defineProps<Props>();
@@ -216,6 +228,7 @@ const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https:
                                     v-model="form.content"
                                     placeholder="Write your post content here..."
                                     min-height="400px"
+                                    :cta-groups="cta ?? []"
                                 />
                                 <p v-if="form.errors.content" class="mt-1 text-sm text-destructive">
                                     {{ form.errors.content }}

@@ -126,6 +126,49 @@ return [
 ];
 ```
 
+## In-article CTAs
+
+Authors can drop calls-to-action into the post body from the editor toolbar's
+**Insert CTA** menu (the megaphone icon). The menu is driven by config and
+groups items under category headings:
+
+```php
+'cta' => [
+    'groups' => [
+        [
+            'label' => 'Engagement',
+            'items' => [
+                [
+                    'label' => 'Build an app (quote)',
+                    'description' => 'Prompt readers to request a project quote',
+                    'shortcode' => '[cta:quote]',
+                ],
+                [
+                    'label' => 'Newsletter signup',
+                    'description' => 'Inline email capture',
+                    'shortcode' => '[cta:newsletter]',
+                ],
+            ],
+        ],
+        [
+            'label' => 'Resources',
+            'items' => [
+                [
+                    'label' => 'Download / lead magnet',
+                    'shortcode' => '[cta:download href="/whitepapers/ai-readiness"]',
+                ],
+            ],
+        ],
+    ],
+],
+```
+
+Selecting an item inserts its `shortcode` verbatim into the content as its own
+paragraph. **Rendering is the host app's responsibility** — parse the
+`[cta:*]` tokens on your public post page (e.g. a Vue shortcode registry) and
+swap them for real components. Set `cta.groups` to an empty array to hide the
+menu entirely.
+
 ## Extending
 
 ### Custom PostService

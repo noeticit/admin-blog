@@ -89,6 +89,52 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | In-article CTAs
+    |--------------------------------------------------------------------------
+    |
+    | Calls-to-action authors can drop into the post body from the editor's
+    | "Insert CTA" menu. Items are grouped under category headings (the menu
+    | shows one heading per group). Each item's `shortcode` is inserted
+    | verbatim into the content — your front-end is responsible for rendering
+    | it (e.g. a Vue shortcode registry on the public post page).
+    |
+    | Override this in your published config/blog.php to match the shortcodes
+    | your site knows how to render. Set to an empty array to hide the menu.
+    |
+    */
+
+    'cta' => [
+        'groups' => [
+            [
+                'label' => 'Engagement',
+                'items' => [
+                    [
+                        'label' => 'Build an app (quote)',
+                        'description' => 'Prompt readers to request a project quote',
+                        'shortcode' => '[cta:quote]',
+                    ],
+                    [
+                        'label' => 'Newsletter signup',
+                        'description' => 'Inline email capture',
+                        'shortcode' => '[cta:newsletter]',
+                    ],
+                ],
+            ],
+            [
+                'label' => 'Resources',
+                'items' => [
+                    [
+                        'label' => 'Download / lead magnet',
+                        'description' => 'Promote a whitepaper or gated resource',
+                        'shortcode' => '[cta:download title="The AI Readiness Checklist" href="/whitepapers/ai-readiness"]',
+                    ],
+                ],
+            ],
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Upload Configuration
     |--------------------------------------------------------------------------
     */

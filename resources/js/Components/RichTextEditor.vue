@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
 import {
     Bold,
     Italic,
@@ -21,19 +21,36 @@ import {
     Redo,
     Maximize2,
     Minimize2,
+    Megaphone,
+    ChevronDown,
 } from 'lucide-vue-next';
+
+interface CtaItem {
+    label: string;
+    description?: string;
+    shortcode: string;
+}
+
+interface CtaGroup {
+    label: string;
+    items: CtaItem[];
+}
 
 interface Props {
     modelValue: string;
     placeholder?: string;
     disabled?: boolean;
     minHeight?: string;
+    // Grouped CTA shortcodes shown in the "Insert CTA" menu. Driven by
+    // config('blog.cta.groups') via the controller.
+    ctaGroups?: CtaGroup[];
 }
 
 const props = withDefaults(defineProps<Props>(), {
     placeholder: 'Start writing...',
     disabled: false,
     minHeight: '400px',
+    ctaGroups: () => [],
 });
 
 const emit = defineEmits<{
@@ -45,6 +62,44 @@ const isFullscreen = ref(false);
 const showLinkModal = ref(false);
 const linkUrl = ref('');
 const linkText = ref('');
+const showCtaMenu = ref(false);
+
+// Only render the CTA menu when at least one group has items.
+const hasCtas = computed(() =>
+    props.ctaGroups.some((group) => group.items && group.items.length > 0)
+);
+
+// The toolbar button steals focus from the contenteditable, so remember where
+// the caret was and restore it before inserting.
+let savedRange: Range | null = null;
+
+const toggleCtaMenu = () => {
+    if (!showCtaMenu.value) {
+        const selection = window.getSelection();
+        savedRange =
+            selection &&
+            selection.rangeCount > 0 &&
+            editorRef.value?.contains(selection.anchorNode)
+                ? selection.getRangeAt(0).cloneRange()
+                : null;
+    }
+    showCtaMenu.value = !showCtaMenu.value;
+};
+
+const insertCta = (shortcode: string) => {
+    editorRef.value?.focus();
+    const selection = window.getSelection();
+    if (savedRange && selection) {
+        selection.removeAllRanges();
+        selection.addRange(savedRange);
+    }
+    // Wrap in its own paragraph (+ an empty one to land the caret after it) so
+    // the shortcode sits on its own block, ready for the front-end parser.
+    document.execCommand('insertHTML', false, `<p>${shortcode}</p><p><br></p>`);
+    savedRange = null;
+    showCtaMenu.value = false;
+    updateContent();
+};
 
 // Toolbar button configuration
 const toolbarButtons = [
@@ -201,6 +256,71 @@ watch(() => props.modelValue, (newValue) => {
                 >
                     <component :is="button.icon" class="h-4 w-4" />
                 </button>
+            </template>
+
+            <!-- Insert CTA dropdown -->
+            <template v-if="hasCtas">
+                <div class="w-px h-6 bg-slate-300 dark:bg-slate-600 mx-1" />
+                <div class="relative">
+                    <button
+                        type="button"
+                        @click="toggleCtaMenu"
+                        :disabled="disabled"
+                        title="Insert CTA"
+                        class="flex items-center gap-1 p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                        <Megaphone class="h-4 w-4" />
+                        <ChevronDown class="h-3 w-3" />
+                    </button>
+
+                    <!-- Click-away backdrop -->
+                    <div
+                        v-if="showCtaMenu"
+                        class="fixed inset-0 z-40"
+                        @click="showCtaMenu = false"
+                    />
+
+                    <!-- Menu (right-aligned so it stays inside the editor) -->
+                    <div
+                        v-if="showCtaMenu"
+                        class="absolute right-0 top-full mt-1 z-50 w-72 max-h-80 overflow-y-auto rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-xl p-1"
+                    >
+                        <template
+                            v-for="(group, groupIndex) in ctaGroups"
+                            :key="group.label"
+                        >
+                            <template v-if="group.items && group.items.length">
+                                <p
+                                    :class="[
+                                        'px-3 pt-2 pb-1 text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500',
+                                        groupIndex > 0
+                                            ? 'mt-1 border-t border-slate-100 dark:border-slate-700'
+                                            : '',
+                                    ]"
+                                >
+                                    {{ group.label }}
+                                </p>
+                                <button
+                                    v-for="item in group.items"
+                                    :key="item.shortcode"
+                                    type="button"
+                                    @click="insertCta(item.shortcode)"
+                                    class="block w-full text-left px-3 py-2 rounded-md hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                                >
+                                    <span class="block text-sm font-medium text-slate-900 dark:text-white">
+                                        {{ item.label }}
+                                    </span>
+                                    <span
+                                        v-if="item.description"
+                                        class="block text-xs text-slate-500 dark:text-slate-400"
+                                    >
+                                        {{ item.description }}
+                                    </span>
+                                </button>
+                            </template>
+                        </template>
+                    </div>
+                </div>
             </template>
 
             <!-- Fullscreen toggle -->

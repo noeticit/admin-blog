@@ -78,6 +78,7 @@ class PostController
         return Inertia::render(config('blog.inertia.page_prefix', 'Admin/Blog').'/Create', [
             'categories' => $categories,
             'tags' => $tags,
+            'cta' => config('blog.cta.groups', []),
         ]);
     }
 
@@ -118,6 +119,7 @@ class PostController
             'post' => $postData,
             'categories' => $categories,
             'tags' => $tags,
+            'cta' => config('blog.cta.groups', []),
         ]);
     }
 
