@@ -73,6 +73,14 @@ const handleDrop = async (e: DragEvent) => {
     }
 };
 
+// Laravel/Inertia verify CSRF via the XSRF-TOKEN cookie. A raw fetch must
+// forward it as the X-XSRF-TOKEN header (there is no csrf-token meta tag),
+// otherwise the request is rejected with a 419 before it reaches the server.
+const getXsrfToken = (): string => {
+    const match = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]+)/);
+    return match ? decodeURIComponent(match[1]) : '';
+};
+
 // Upload file
 const uploadFile = async (file: File) => {
     if (!file.type.startsWith('image/')) {
@@ -97,13 +105,18 @@ const uploadFile = async (file: File) => {
         const response = await fetch('/admin/blog/upload-image', {
             method: 'POST',
             headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                'X-XSRF-TOKEN': getXsrfToken(),
+                Accept: 'application/json',
             },
+            credentials: 'same-origin',
             body: formData,
         });
 
         if (!response.ok) {
-            throw new Error('Upload failed');
+            const data = await response.json().catch(() => null);
+            throw new Error(
+                data?.error || data?.message || `Upload failed (${response.status})`,
+            );
         }
 
         const data = await response.json();

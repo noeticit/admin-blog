@@ -140,8 +140,8 @@ return [
     */
 
     'uploads' => [
-        'disk' => 'public',
-        'path' => 'blog-images',
+        'disk' => env('BLOG_UPLOAD_DISK', 'public'),
+        'path' => env('BLOG_UPLOAD_PATH', 'blog-images'),
         'max_size' => 5120, // KB
     ],
 

@@ -120,8 +120,10 @@ return [
     ],
 
     'uploads' => [
-        'disk' => 'public',
-        'path' => 'blog-images',
+        // Set BLOG_UPLOAD_DISK=s3 (or any configured filesystem disk) to store
+        // featured images / editor uploads off-box. Defaults to the public disk.
+        'disk' => env('BLOG_UPLOAD_DISK', 'public'),
+        'path' => env('BLOG_UPLOAD_PATH', 'blog-images'),
     ],
 ];
 ```
