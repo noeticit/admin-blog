@@ -96,15 +96,25 @@ interface Props {
 const props = defineProps<Props>();
 
 // Filter state
-const search = ref(props.filters.search || '');
-const selectedStatus = ref(props.filters.status || '');
-const selectedCategory = ref(props.filters.category || '');
-const selectedTag = ref(props.filters.tag || '');
-const sortBy = ref(props.filters.sort || 'created_at');
-const sortDirection = ref(props.filters.direction || 'desc');
-const perPage = ref(props.filters.per_page || '15');
-const dateFrom = ref(props.filters.date_from || '');
-const dateTo = ref(props.filters.date_to || '');
+//
+// `props.filters` arrives as an empty JS array (`[]`) when no filters are
+// active, because PHP serialises an empty associative array as a JSON array.
+// Reading `.sort` on an array returns `Array.prototype.sort` — a function that
+// would otherwise leak into the query string (`sort=function sort() {...}`) and
+// blow up the SQL `order by`. Normalise to a plain object first.
+const filters: Record<string, string | undefined> = Array.isArray(props.filters)
+    ? {}
+    : props.filters;
+
+const search = ref(filters.search || '');
+const selectedStatus = ref(filters.status || '');
+const selectedCategory = ref(filters.category || '');
+const selectedTag = ref(filters.tag || '');
+const sortBy = ref(filters.sort || 'created_at');
+const sortDirection = ref(filters.direction || 'desc');
+const perPage = ref(filters.per_page || '15');
+const dateFrom = ref(filters.date_from || '');
+const dateTo = ref(filters.date_to || '');
 
 // UI state
 const showAdvancedFilters = ref(false);

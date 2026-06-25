@@ -39,12 +39,27 @@ class PostController
             $query->byStatus($request->status);
         }
 
+        if ($request->tag) {
+            $query->byTag($request->tag);
+        }
+
         if ($request->author) {
             $query->byAuthor($request->author);
         }
 
-        $sortBy = $request->get('sort', 'created_at');
-        $sortDirection = $request->get('direction', 'desc');
+        if ($request->date_from) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+
+        if ($request->date_to) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
+
+        // Whitelist sortable columns and direction — never pass raw request
+        // input to orderBy() (guards against invalid columns / SQL injection).
+        $sortable = ['created_at', 'updated_at', 'published_at', 'title', 'status', 'views', 'views_count'];
+        $sortBy = in_array($request->get('sort'), $sortable, true) ? $request->get('sort') : 'created_at';
+        $sortDirection = strtolower((string) $request->get('direction')) === 'asc' ? 'asc' : 'desc';
         $query->orderBy($sortBy === 'views' ? 'views_count' : $sortBy, $sortDirection);
 
         $posts = $query->paginate(
@@ -66,7 +81,9 @@ class PostController
             'categories' => $categories,
             'tags' => $tags,
             'stats' => $stats,
-            'filters' => $request->only(['search', 'category', 'status', 'author', 'sort', 'direction', 'per_page']),
+            // Cast to object so an empty filter set serialises as {} (not []):
+            // a JS array would expose Array.prototype methods such as `.sort`.
+            'filters' => (object) $request->only(['search', 'category', 'status', 'tag', 'author', 'sort', 'direction', 'per_page', 'date_from', 'date_to']),
         ]);
     }
 
