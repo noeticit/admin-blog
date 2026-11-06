@@ -158,16 +158,18 @@ class Post extends Model
             return $query;
         }
 
+        // whereLike(caseSensitive: false) is case-insensitive on every driver:
+        // plain LIKE on MySQL/SQLite, ILIKE on Postgres (where LIKE is case-sensitive).
         return $query->where(function ($q) use ($search) {
-            $q->where('title', 'like', "%{$search}%")
-                ->orWhere('content', 'like', "%{$search}%")
-                ->orWhere('excerpt', 'like', "%{$search}%")
-                ->orWhere('meta_description', 'like', "%{$search}%")
+            $q->whereLike('title', "%{$search}%")
+                ->orWhereLike('content', "%{$search}%")
+                ->orWhereLike('excerpt', "%{$search}%")
+                ->orWhereLike('meta_description', "%{$search}%")
                 ->orWhereHas('category', function ($categoryQuery) use ($search) {
-                    $categoryQuery->where('name', 'like', "%{$search}%");
+                    $categoryQuery->whereLike('name', "%{$search}%");
                 })
                 ->orWhereHas('tags', function ($tagQuery) use ($search) {
-                    $tagQuery->where('name', 'like', "%{$search}%");
+                    $tagQuery->whereLike('name', "%{$search}%");
                 });
         });
     }
